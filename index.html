@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opposite Instructions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: white;
+            margin: 50px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: #333;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff4444;
+            color: white;
+        }
+        button:hover {
+            background-color: #ff6666;
+        }
+        #gameArea {
+            margin-top: 20px;
+        }
+        input {
+            padding: 5px;
+            font-size: 16px;
+            width: 50px;
+            text-align: center;
+        }
+        #gameOver {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Opposite Instructions</h1>
+    <p id="instructions">Choose wisely...</p>
+    <button id="startButton" onclick="gameOver()">Start</button>
+    <button id="exitButton" onclick="startGame()">Exit</button>
+    <div id="gameArea"></div>
+</div>
+
+<div id="gameOver">
+    <h1>Game Over!</h1>
+    <button onclick="restartGame()">Restart</button>
+</div>
+
+<script>
+    let level = 0;
+    let timeout;
+    const gameArea = document.getElementById("gameArea");
+    const instructions = document.getElementById("instructions");
+
+    function startGame() {
+        document.getElementById("startButton").style.display = "none";
+        document.getElementById("exitButton").style.display = "none";
+        level = 0;
+        nextLevel();
+    }
+
+    function nextLevel() {
+        if (level >= levels.length) {
+            instructions.innerText = "You win!";
+            gameArea.innerHTML = "";
+            return;
+        }
+        
+        instructions.innerText = levels[level].text;
+        gameArea.innerHTML = "";
+        levels[level].action();
+        level++;
+    }
+
+    function gameOver() {
+        document.getElementById("gameOver").style.display = "flex";
+    }
+
+    function restartGame() {
+        document.getElementById("gameOver").style.display = "none";
+        document.getElementById("startButton").style.display = "inline-block";
+        document.getElementById("exitButton").style.display = "inline-block";
+        instructions.innerText = "Choose wisely...";
+        gameArea.innerHTML = "";
+    }
+
+    const levels = [
+        { text: "Do not press the button for 5 seconds!", action: () => startTimer(5, false) },
+        { text: "What is 2 + 2? (Answer incorrectly)", action: () => numberChallenge(4, false) },
+        { text: "Press the button for 5 seconds!", action: () => startTimer(5, true) },
+        { text: "Press the button exactly when the timer hits 0!", action: () => countdownChallenge() },
+        { text: "5 x 2 = ?", action: () => puzzleChallenge(10) }
+    ];
+
+    function startTimer(seconds, shouldStay) {
+        let pressed = false;
+        const button = document.createElement("button");
+        button.innerText = "Click me!";
+        button.onclick = () => {
+            pressed = true;
+            if (!shouldStay) nextLevel();
+            else gameOver();
+        };
+        
+        gameArea.appendChild(button);
+        
+        setTimeout(() => {
+            if (shouldStay && !pressed) nextLevel();
+            else if (!shouldStay && !pressed) gameOver();
+        }, seconds * 1000);
+    }
+
+    function numberChallenge(correct, shouldBeCorrect) {
+        const input = document.createElement("input");
+        input.type = "number";
+        const button = document.createElement("button");
+        button.innerText = "Submit";
+        
+        button.onclick = () => {
+            if ((input.value == correct) !== shouldBeCorrect) {
+                nextLevel();
+            } else {
+                gameOver();
+            }
+        };
+
+        gameArea.appendChild(input);
+        gameArea.appendChild(button);
+    }
+
+    function countdownChallenge() {
+        let timeLeft = 3;
+        const timerText = document.createElement("p");
+        timerText.innerText = timeLeft;
+        gameArea.appendChild(timerText);
+
+        const button = document.createElement("button");
+        button.innerText = "Click!";
+        button.onclick = () => {
+            if (timeLeft !== 0) {
+                nextLevel();
+            } else {
+                gameOver();
+            }
+        };
+        gameArea.appendChild(button);
+
+        const interval = setInterval(() => {
+            timeLeft--;
+            timerText.innerText = timeLeft;
+            if (timeLeft === 0) clearInterval(interval);
+        }, 1000);
+    }
+
+    function puzzleChallenge(correctAnswer) {
+        const question = document.createElement("p");
+        question.innerText = "Choose the incorrect answer:";
+        gameArea.appendChild(question);
+        
+        for (let i = 8; i <= 12; i++) {
+            const button = document.createElement("button");
+            button.innerText = i;
+            button.onclick = () => {
+                if (i === correctAnswer) nextLevel();
+                else gameOver();
+            };
+            gameArea.appendChild(button);
+        }
+    }
+</script>
+
+</body>
+</html>
